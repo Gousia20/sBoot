@@ -7,8 +7,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'freature/gousia',
-                    url: 'git@github.com:Gousia20/sBoot.git'
+              checkout scm
             }
         }
 
