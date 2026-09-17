@@ -1,63 +1,75 @@
+
+
 pipeline {
     agent any
+
     stages {
 
+        stage('Checkout') {
+            steps {
+                git branch: 'freature/gousia',
+                    url: 'git@github.com:Gousia20/sBoot.git'
+            }
+        }
 
-      stage('checkout') {
-        steps {
-          git branch: 'freature/gousia' , url: 'git@github.com:Gousia20/sBoot.git'
-} 
- }
-      stage('build') {
-        steps {
-          sh 'mvn clean package -DskipTests'
-}
- }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
 
-      stage('Test') {
-        steps {
-          sh 'mvn test'
-}
- }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
 
-      stage('archive') {
-        steps {
-          achiveArtifacts artifacts: 'target/*.war'
-            fingureprint= true
-}
-  }
+        stage('Archive') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.war',
+                                 fingerprint: true
+            }
+        }
 
- # CD (deployment)
+        // CD - Deployment
 
-      stage('tomcat deploy') {
-        steps {
-          sh ' ' '
-            echo "stopping tomcat"
-            sudo /home/gousia/Desktop/tomcat/tomcat/bin/shutdown.sh || true
-            
-            sleep 5
-            
-            echo "removing old war"
-            sudo rm -rf  /home/gousia/Desktop/tomcat/tomcat/webapps/spring-boot-rest-example-0.5.0.war
+        stage('Tomcat Deploy') {
+            steps {
+                sh '''
+                    echo "Stopping Tomcat"
 
-            echo "deploying the new war"
-            sudo cp /target/spring-boot-rest-example-0.5.0.war \ /home/gousia/Desktop/tomcat/tomcat/webapps
+                    sudo /home/gousia/Desktop/tomcat/tomcat/bin/shutdown.sh || true
 
+                    sleep 5
 
-            echo "starting tomcat"
-            sudo /home/gousia/Desktop/tomcat/tomcat/bin/startup.sh
+                    echo "Removing old WAR"
 
-            sleep 10
+                    sudo rm -rf /home/gousia/Desktop/tomcat/tomcat/webapps/spring-boot-rest-example-0.5.0.war
+                    sudo rm -rf /home/gousia/Desktop/tomcat/tomcat/webapps/spring-boot-rest-example-0.5.0
 
-            ' ' ' 
-}           
- }
-           stage('verify') {
-             steps {
-               sh 'curl -f \ http://localhost:8081/spring-boot-rest-example-0.5.0/example/v1/hotels'
-}
- }
-           
+                    echo "Deploying new WAR"
+
+                    sudo cp target/spring-boot-rest-example-0.5.0.war \
+                        /home/gousia/Desktop/tomcat/tomcat/webapps/
+
+                    echo "Starting Tomcat"
+
+                    sudo /home/gousia/Desktop/tomcat/tomcat/bin/startup.sh
+
+                    sleep 10
+                '''
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                sh '''
+                    curl -f http://localhost:8081/spring-boot-rest-example-0.5.0/example/v1/hotels
+                '''
+            }
+        }
+    }
+
     post {
         success {
             echo 'sBoot deployment successful!'
@@ -68,9 +80,6 @@ pipeline {
         }
     }
 }
-
-
-
 
 
 
